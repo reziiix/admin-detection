@@ -1,0 +1,32 @@
+:root{
+  --bg:#0f1226; --panel:#151a36; --text:#E7E9FF; --muted:#9aa3b2;
+  --accent:#6C8CFF; --danger:#FF6B6B;
+}
+
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:16px/1.45 "Segoe UI",system-ui,-apple-system,Arial}
+
+#stars{position:fixed;inset:0;z-index:0;pointer-events:none;background:radial-gradient(ellipse at 50% 120%, #0a0d20 0%, #07091a 50%, #050716 100%)}
+.wrap{position:relative;z-index:1;max-width:780px;margin:6vh auto;padding:0 16px}
+h1{margin:0 0 6px;font-size:28px;font-weight:800}
+h2{margin:0 0 10px}
+h3{margin:6px 0}
+.muted{color:var(--muted)}
+.tiny{font-size:12px}
+
+.panel{margin-top:14px;background:var(--panel);border-radius:14px;padding:18px;border:1px solid #223;box-shadow:0 10px 30px rgba(0,0,0,.35)}
+.hidden{display:none}
+
+label{display:block;margin:.5rem 0 .25rem}
+input{width:100%;padding:12px;border-radius:10px;border:1px solid #2a3158;background:#11152d;color:var(--text);outline:none}
+input:focus{border-color:var(--accent);box-shadow:0 0 12px rgba(108,140,255,.25)}
+
+.row{display:flex;gap:10px;align-items:center;margin:8px 0 6px}
+.btn{appearance:none;border:0;border-radius:10px;padding:12px 16px;font-weight:700;cursor:pointer;color:#fff;background:#2a3170;box-shadow:0 6px 18px rgba(0,0,0,.3)}
+.btn:hover{filter:brightness(1.05)}
+.btn.accent{background:var(--accent)}
+.btn.danger{background:var(--danger)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+
+.danger-zone{margin-top:16px;border-top:1px dashed #2a3158;padding-top:12px}
+code{background:#10142c;padding:2px 6px;border-radius:6px}

@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>AI Detection Games — Admin</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <canvas id="stars"></canvas>
+
+  <div class="wrap">
+    <h1>Admin Console</h1>
+    <p class="muted">Restricted access. Enter the admin password to proceed.</p>
+
+    <!-- Login panel -->
+    <div id="login" class="panel">
+      <form id="pw-form">
+        <label for="pw">Password</label>
+        <input id="pw" type="password" placeholder="Enter password" autocomplete="current-password" required />
+        <button class="btn accent" type="submit">Unlock</button>
+        <p id="msg" class="muted tiny"></p>
+      </form>
+    </div>
+
+    <!-- Admin panel (hidden until unlocked) -->
+    <div id="admin" class="panel hidden">
+      <h2>Leaderboard Controls</h2>
+      <div class="row">
+        <button id="export" class="btn">Export Top 100 (CSV)</button>
+        <a id="download" class="hidden"></a>
+      </div>
+      <div class="danger-zone">
+        <h3>Danger Zone</h3>
+        <p class="muted">This will permanently erase all rows from the <code>scores</code> table.</p>
+        <label for="confirm">Type <b>DELETE</b> to confirm</label>
+        <input id="confirm" type="text" placeholder="DELETE" />
+        <button id="wipe" class="btn danger" disabled>Erase All Scores</button>
+        <p id="status" class="tiny muted"></p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Minimal star background for vibes
+    (function(){
+      const c=document.getElementById('stars'); const x=c.getContext('2d');
+      let w,h,d = Math.min(devicePixelRatio||1,2), stars=[];
+      function R(){ w=c.width=innerWidth*d; h=c.height=innerHeight*d; c.style.width=innerWidth+'px'; c.style.height=innerHeight+'px';
+        stars=new Array(Math.min(300, Math.floor((innerWidth*innerHeight)/8000))).fill(0).map(()=>({x:Math.random()*w,y:Math.random()*h,s:0.5+Math.random()*1.5}));
+      }
+      addEventListener('resize',R,{passive:true}); R();
+      (function A(){ x.clearRect(0,0,w,h); x.fillStyle='rgba(231,233,255,.8)';
+        for(const s of stars){ x.globalAlpha = .3 + Math.random()*.7; x.fillRect(s.x,s.y,s.s,s.s); }
+        requestAnimationFrame(A);
+      })();
+    })();
+  </script>
+  <script src="admin.js"></script>
+</body>
+</html>
