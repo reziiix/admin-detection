@@ -15,7 +15,6 @@ const ADMIN_HEADER  = "QWIYGDIUQHKNKJZABJHQGIYGWIDBQUKawsdb";
 
 // Set to the SHA-256 hex of your chosen password (see README comment below)
 const PASSWORD_SHA256_HEX = "caa75277d28a4a59bfeb82058a03beefdf02b93da0013987c128035968db43fe";
-
 // ---------- helpers ----------
 const $ = s => document.querySelector(s);
 function toHex(buf){ return Array.from(new Uint8Array(buf)).map(x=>x.toString(16).padStart(2,"0")).join(""); }
@@ -57,13 +56,14 @@ function initControls(){
   const wipeBtn = $("#wipe");
   const exportBtn = $("#export");
 
+  // Enable wipe only when the operator types DELETE
   confirmInput.addEventListener("input", ()=>{
     wipeBtn.disabled = (confirmInput.value.trim().toUpperCase() !== "DELETE");
   });
 
   exportBtn.addEventListener("click", exportCsv);
 
-  // -------- Wipe all rows (robust: id > 0, then explicit id list) --------
+  // ---- Wipe via RPC (TRUNCATE) with verification ----
   wipeBtn.addEventListener("click", async ()=>{
     if(wipeBtn.disabled) return;
     if(confirmInput.value.trim().toUpperCase() !== "DELETE") return;
@@ -74,64 +74,32 @@ function initControls(){
     try{
       const beforeTotal = await countRows();
 
-      // Pass 1: delete every row via id>0 (covers all normal rows)
-      const del1 = await fetch(`${SUPABASE_URL}/rest/v1/${SCORES_TABLE}?id=gt.0`, {
-        method: "DELETE",
+      // Call the security-definer function (bypasses RLS, checks token server-side)
+      const rpc = await fetch(`${SUPABASE_URL}/rest/v1/rpc/admin_wipe_scores`, {
+        method: "POST",
         headers: {
           apikey: SUPABASE_ANON,
           Authorization: `Bearer ${SUPABASE_ANON}`,
-          "x-admin": ADMIN_HEADER,       // must match RLS policy
-          Prefer: "return=minimal"
-        }
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ admin_token: ADMIN_HEADER }) // MUST equal SQL token
       });
-      if(!del1.ok){
-        const t = await del1.text();
-        throw new Error(`Delete(1) failed: ${del1.status} ${del1.statusText} — ${t}`);
+      if(!rpc.ok){
+        const t = await rpc.text();
+        throw new Error(`RPC wipe failed: ${rpc.status} ${rpc.statusText} — ${t}`);
       }
 
-      // Check remaining rows
-      let remaining = await countRows();
-
-      // Pass 2: if anything remains (weird legacy rows), delete by explicit id list
-      if(remaining > 0){
-        const r = await fetch(`${SUPABASE_URL}/rest/v1/${SCORES_TABLE}?select=id`, {
-          headers: {
-            apikey: SUPABASE_ANON,
-            Authorization: `Bearer ${SUPABASE_ANON}`,
-            Prefer: "count=exact"
-          }
-        });
-        if(!r.ok) throw new Error(`Fetch ids failed: ${r.status} ${r.statusText}`);
-        const rows = await r.json();
-        if(rows.length > 0){
-          // IMPORTANT: do NOT URL-encode commas in PostgREST IN lists
-          const list = rows.map(x => x.id).join(",");
-          const del2 = await fetch(`${SUPABASE_URL}/rest/v1/${SCORES_TABLE}?id=in.(${list})`, {
-            method: "DELETE",
-            headers: {
-              apikey: SUPABASE_ANON,
-              Authorization: `Bearer ${SUPABASE_ANON}`,
-              "x-admin": ADMIN_HEADER,
-              Prefer: "return=minimal"
-            }
-          });
-          if(!del2.ok){
-            const t2 = await del2.text();
-            throw new Error(`Delete(2) failed: ${del2.status} ${del2.statusText} — ${t2}`);
-          }
-        }
-        remaining = await countRows();
-      }
-
-      if(remaining === 0){
+      // Verify table is empty now
+      const afterTotal = await countRows();
+      if(afterTotal === 0){
         setStatus(`All scores erased. Removed ${beforeTotal} rows.`, true);
         confirmInput.value = "";
       }else{
-        setStatus(`Delete ran, but ${remaining} rows remain. Check admin token & delete policy.`);
+        setStatus(`Wipe ran, but ${afterTotal} rows remain. Double-check SQL function + token.`);
       }
     }catch(e){
       console.warn(e);
-      setStatus("Delete failed. Check admin header token & RLS policy.");
+      setStatus("Delete failed. Check admin token & SQL function/permissions.");
     }finally{
       wipeBtn.disabled = true;
     }
