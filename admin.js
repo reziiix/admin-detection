@@ -1,11 +1,4 @@
-// ===================== admin.js (AI Detection Games — Admin Console) =====================
-// Requirements:
-// - Supabase table: scores(id bigserial pk, name text, score int, total int, ts bigint not null)
-// - RLS enabled with policies: select (true), delete requires x-admin header matching your token
-//     create policy delete_scores_admin on scores for delete to anon
-//     using ( current_setting('request.headers.x-admin', true) = 'YOUR_ADMIN_TOKEN' );
 
-// ---------- CONFIG ----------
 const SUPABASE_URL  = "https://tzmegilrifrlruljfamb.supabase.co";
 const SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR6bWVnaWxyaWZybHJ1bGpmYW1iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkxNzU2MzEsImV4cCI6MjA3NDc1MTYzMX0.UBpJTuPOg1DOwUvffd_ch0fKwWyYbmOPEpkzIEh3thg";
 const SCORES_TABLE  = "scores";
@@ -13,7 +6,7 @@ const SCORES_TABLE  = "scores";
 // Must match your RLS policy string exactly:
 const ADMIN_HEADER  = "QWIYGDIUQHKNKJZABJHQGIYGWIDBQUKawsdb";
 
-// Set to the SHA-256 hex of your chosen password (see README comment below)
+
 const PASSWORD_SHA256_HEX = "caa75277d28a4a59bfeb82058a03beefdf02b93da0013987c128035968db43fe";
 // ---------- helpers ----------
 const $ = s => document.querySelector(s);
@@ -147,4 +140,5 @@ async function exportCsv(){
     console.warn(e);
     setStatus("Export failed.");
   }
+
 }
